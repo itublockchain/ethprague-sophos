@@ -28,7 +28,7 @@ const worker = new Worker(
         break;
       case "check-game-data":
         const gameID = job.data.gameID;
-        const LICHESS_URL = `https://lichess.org/game/export/${gameID}`;
+        const LICHESS_URL = `https://${process.env.DOMAIN}/game/export/${gameID}`;
 
         const [lichess_raw_data, gameSHA] = await Promise.all([
           (async () => {
@@ -73,7 +73,7 @@ const worker = new Worker(
           if (bid.state !== BidState.PENDING) return bid;
 
           // Turn pending bids into valid or invalid state
-          if (bid.turn > current_turn) bid.state = BidState.VALID;
+          if (bid.turn >= current_turn) bid.state = BidState.VALID;
           else bid.state = BidState.INVALID;
 
           console.log("[validate-bid]: Bid: ", bid);
@@ -110,13 +110,13 @@ const worker = new Worker(
           );
           console.log(
             "[finalize-new-bids]: Move: ",
-            moves[bid.turn],
+            moves.split(" ")[bid.turn-1],
             "Turn: ",
             bid.turn
           );
           console.log("[finalize-new-bids]: ================================");
 
-          if (bid.move === moves[bid.turn]) {
+          if (bid.move === moves.split(" ")[bid.turn-1]) {
             // lets suppose its axbc === axbc for turn 3 and our last round is 5
             bid.state = BidState.WON;
           } else {
