@@ -1,3 +1,0 @@
-include:
-  # express
-  - express-docker/service.yaml
