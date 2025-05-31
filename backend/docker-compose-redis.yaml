@@ -1,0 +1,3 @@
+include:
+  # redis
+  - redis-server/service.yaml

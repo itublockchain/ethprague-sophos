@@ -1,0 +1,23 @@
+{
+  "name": "express-server",
+  "module": "index.ts",
+  "type": "module",
+  "scripts": {
+    "start": "bun run index.ts",
+    "proveData": "bun run prove-data.ts",
+    "redis": "bun run ./hooks/redis_connection.ts"
+  },
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@types/express": "^5.0.2",
+    "@vlayer/sdk": "^1.0.2",
+    "bullmq": "^5.53.1",
+    "express": "^5.1.0"
+  }
+}

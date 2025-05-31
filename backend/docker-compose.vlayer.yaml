@@ -1,0 +1,10 @@
+include: 
+  # chain
+  - vlayer-notary/anvil/service.yaml
+  # vlayer-notary
+  - vlayer-notary/vdns_server/service.yaml
+  - vlayer-notary/call_server/service.yaml
+  # webproofs 
+  - vlayer-notary/websockify/service.yaml
+  - vlayer-notary/websockify-test-client/service.yaml
+  - vlayer-notary/notary-server/service.yaml

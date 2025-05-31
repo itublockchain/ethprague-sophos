@@ -1,0 +1,21 @@
+{
+  "name": "backend",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "scripts": {
+    "backend:dev": "bun run express-server/index.ts",
+    "vlayer:up": "docker compose --file docker-compose.vlayer.yaml up -d",
+    "vlayer:down": "docker compose --file docker-compose.vlayer.yaml down",
+    "redis:up": "docker compose --file docker-compose-redis.yaml up -d",
+    "redis:down": "docker compose --file docker-compose-redis.yaml down",
+    "all:up": "bun run vlayer:up && bun run redis:up",
+    "all:down": "bun run vlayer:down && bun run redis:down"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
