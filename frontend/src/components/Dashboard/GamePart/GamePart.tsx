@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
-import PreviewPart from "./Preview/PreviewPart";
 import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import PlayPart from "./PlayPart/PlayPart";
+import PreviewPart from "./Preview/PreviewPart";
 
 export default function GamePart() {
   const [selectedGameId, setSelectedGameId] = useState("");

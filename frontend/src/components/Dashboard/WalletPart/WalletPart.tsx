@@ -1,15 +1,15 @@
 import { Button } from "@/components/ui/button";
-import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
+import { useMetaMask } from "@/hooks/useMetaMask";
 import { IdCard } from "lucide-react";
 import { toast } from "sonner";
 
 export default function WalletPart() {
-  const { user, primaryWallet, setShowAuthFlow, handleLogOut } =
-    useDynamicContext();
+  const { connectWallet, disconnectWallet, address, isConnected } =
+    useMetaMask();
 
   const handleConnectWalletButton = async () => {
     try {
-      setShowAuthFlow(true);
+      connectWallet();
     } catch (error) {
       console.error("Error connecting wallet", error);
       toast.error("Error connecting wallet: " + error);
@@ -17,20 +17,19 @@ export default function WalletPart() {
   };
 
   const handleDisconnectWalletButton = () => {
-    if (!user) {
+    if (!isConnected) {
       toast.error("No wallet connected");
       return;
     }
-
     try {
-      handleLogOut();
+      disconnectWallet();
     } catch (error) {
       console.error("Error disconnecting wallet", error);
       toast.error("Error disconnecting wallet: " + error);
     }
   };
 
-  if (!user) {
+  if (!isConnected) {
     return (
       <div
         id="welcoming"
@@ -67,7 +66,7 @@ export default function WalletPart() {
           <div id="address" className="flex flex-col gap-1">
             <IdCard className="size-4" />
             <div id="description" className="text-xs break-all">
-              {primaryWallet?.address}
+              {address}
             </div>
           </div>
         </div>

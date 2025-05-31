@@ -1,6 +1,5 @@
 import { MoveLeft } from "lucide-react";
 import Link from "next/link";
-import React from "react";
 import PlayInterfacePart from "./PlayInterfacePart/PlayInterfacePart";
 
 type Props = {

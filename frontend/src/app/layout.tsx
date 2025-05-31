@@ -1,9 +1,10 @@
+import { Toaster } from "@/components/ui/sonner";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import WalletProvider from "@/provider/WalletProvider";
 import NextTopLoader from "nextjs-toploader";
-import { Toaster } from "@/components/ui/sonner";
+import "./globals.css";
+import { WebSocketProvider } from "@/context/WebSocketContext";
+import { NitroliteClientWrapper } from "@/context/NitroliteClientWrapper";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,7 +32,10 @@ export default function RootLayout({
         className={`flex flex-col min-h-screen w-full ${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <NextTopLoader showSpinner={false} color="black" />
-        <WalletProvider>{children}</WalletProvider>
+        <NitroliteClientWrapper>
+          <WebSocketProvider>{children}</WebSocketProvider>
+        </NitroliteClientWrapper>
+
         <Toaster />
       </body>
     </html>
