@@ -69,13 +69,7 @@ Sophos is committed to:
 - Developing AI-based anti-cheat algorithms
 - Optimizing UX for mobile and web3-native users
 
----
-
-## 🚀 Quick Start (Coming Soon)
-
-> Full frontend and smart contract deployment guide will be added after mainnet launch.
-
----
+--- 
 
 ## 🤝 Partners & Tech Stack
 
@@ -83,14 +77,6 @@ Sophos is committed to:
 - [Vlayer](https://vlayer.io/) — Web Proof ZK Verification
 - [Lichess](https://lichess.org/) — Real-time Game Feed
 - Solidity, Hardhat, TypeScript, Ethers.js
-
----
-
-## 📬 Contact & Updates
-
-- Website: [Coming Soon]
-- Twitter: [@SophosChess](https://twitter.com) *(placeholder)*
-- Discord: [Join Community](https://discord.gg) *(placeholder)*
 
 ---
 
