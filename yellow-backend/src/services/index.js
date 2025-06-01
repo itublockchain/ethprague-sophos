@@ -3,13 +3,12 @@
  */
 
 // Nitrolite RPC (WebSocket) client
-export { 
-  initializeRPCClient, 
+export {
+  initializeRPCClient,
   getRPCClient,
-  NitroliteRPCClient, 
-  WSStatus 
-} from './nitroliteRPC.js';
-
+  NitroliteRPCClient,
+  WSStatus,
+} from "./nitroliteRPC.js";
 
 // App sessions for game rooms
 export {
@@ -21,11 +20,17 @@ export {
   generateAppSessionMessage,
   getPendingAppSessionMessage,
   addAppSessionSignature,
-  createAppSessionWithSignatures
-} from './appSessions.js';
+  createAppSessionWithSignatures,
+} from "./appSessions.js";
 
 // Room management
-export { createRoomManager } from './roomManager.js';
+export { createRoomManager } from "./roomManager.js";
 
-// Tic Tac Toe game logic
-export { createGame, makeMove, checkWinner, formatGameState, formatGameOverMessage } from './ticTacToe.js';
+// Chess Betting game logic
+export {
+  createGame,
+  placeBet,
+  getGameStatus,
+  formatGameState,
+  formatGameOverMessage,
+} from "./chessBetting.js";

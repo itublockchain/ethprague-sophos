@@ -11,7 +11,7 @@ import {
   hasAppSession,
 } from "../services/index.js";
 import logger from "../utils/logger.js";
-import { validateMovePayload } from "../utils/validators.js";
+import { validateBetPayload } from "../utils/validators.js";
 
 /**
  * Handles a start game request
@@ -107,25 +107,25 @@ export async function handleStartGame(
 }
 
 /**
- * Handles a move request
+ * Handles a bet request
  * @param {WebSocket} ws - WebSocket connection
  * @param {Object} payload - Request payload
  * @param {Object} context - Application context containing roomManager and connections
  */
-export async function handleMove(
+export async function handleBet(
   ws,
   payload,
   { roomManager, connections, sendError }
 ) {
   // Validate payload
-  const validation = validateMovePayload(payload);
+  const validation = validateBetPayload(payload);
   if (!validation.success) {
     return sendError(ws, "INVALID_PAYLOAD", validation.error);
   }
 
-  const { roomId, pos } = payload;
+  const { roomId, balanceDifference } = payload;
 
-  // Find the player making the move
+  // Find the player making the bet
   let playerEoa = null;
   for (const [eoa, connection] of connections.entries()) {
     if (connection.ws === ws) {
@@ -138,25 +138,29 @@ export async function handleMove(
     return sendError(ws, "NOT_AUTHENTICATED", "Player not authenticated");
   }
 
-  // Process the move
-  const result = roomManager.processMove(roomId, pos, playerEoa);
+  // Process the bet
+  const result = roomManager.processBet(roomId, balanceDifference, playerEoa);
   if (!result.success) {
-    return sendError(ws, "MOVE_FAILED", result.error);
+    return sendError(ws, "BET_FAILED", result.error);
   }
 
-  // Broadcast updated game state
-  roomManager.broadcastToRoom(
-    roomId,
-    "room:state",
-    formatGameState(result.gameState, roomId)
+  // Since you mentioned you don't need broadcasting, we'll skip the real-time updates
+  // Just store the result in a simple database or log it
+  logger.info(
+    `Bet processed for room ${roomId}: ${JSON.stringify({
+      roomId,
+      balanceDifference,
+      player: playerEoa,
+      gameState: result.gameState,
+    })}`
   );
 
-  // Handle game over condition
+  // Handle game over condition (after 4 steps)
   if (result.isGameOver) {
-    roomManager.broadcastToRoom(
-      roomId,
-      "game:over",
-      formatGameOverMessage(result.gameState)
+    const gameOverData = formatGameOverMessage(result.gameState);
+
+    logger.info(
+      `Game finished for room ${roomId}: ${JSON.stringify(gameOverData)}`
     );
 
     // Close the app session if one was created
@@ -170,9 +174,13 @@ export async function handleMove(
         );
 
         // Create the final allocations based on the game result
-        // Currently using all zeroes, but you might implement actual token allocations
-        // based on the game outcome in the future
-        const finalAllocations = [0, 0, 0];
+        // Using the actual balance differences from the game
+        const { player1, player2 } = result.gameState.players;
+        const balance1 = result.gameState.balances[player1];
+        const balance2 = result.gameState.balances[player2];
+
+        // Convert balances to allocations (you may need to adjust this logic)
+        const finalAllocations = [balance1, balance2, 0];
 
         await closeAppSession(roomId, finalAllocations);
         logger.nitro(`App session closed for room ${roomId}`);
@@ -180,7 +188,10 @@ export async function handleMove(
       // Otherwise check the app sessions storage
       else if (hasAppSession(roomId)) {
         logger.nitro(`Closing app session from storage for room ${roomId}`);
-        const finalAllocations = [0, 0, 0];
+        const { player1, player2 } = result.gameState.players;
+        const balance1 = result.gameState.balances[player1];
+        const balance2 = result.gameState.balances[player2];
+        const finalAllocations = [balance1, balance2, 0];
         await closeAppSession(roomId, finalAllocations);
         logger.nitro(`App session closed for room ${roomId}`);
       }
@@ -194,4 +205,14 @@ export async function handleMove(
       roomManager.closeRoom(roomId);
     }, 5000);
   }
+
+  // Return the result payload as requested
+  return {
+    roomId,
+    balanceDifference,
+    success: true,
+    isGameOver: result.isGameOver,
+    currentStep: result.gameState.currentStep,
+    balances: result.gameState.balances,
+  };
 }

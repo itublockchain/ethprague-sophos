@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState, useCallback } from "react";
 import type {
-  WebSocketMessages,
+  BetPayload,
   JoinRoomPayload,
   MovePayload,
+  WebSocketMessages
 } from "@/types/Index";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 // WebSocket hook for connecting to the game server
 export function useWebSocket() {
@@ -78,6 +79,16 @@ export function useWebSocket() {
   );
 
   // Make a move
+  const makeBet = useCallback(
+    (payload: BetPayload) => {
+      sendMessage({
+        type: "bet",
+        payload,
+      });
+    },
+    [sendMessage]
+  );
+
   const makeMove = useCallback(
     (payload: MovePayload) => {
       sendMessage({
@@ -133,6 +144,7 @@ export function useWebSocket() {
     error,
     lastMessage,
     joinRoom,
+    makeBet,
     makeMove,
     startGame,
     getAvailableRooms,

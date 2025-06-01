@@ -36,16 +36,23 @@ export interface JoinRoomPayload {
   eoa: string;
 }
 
+// Bet payload
+export interface BetPayload {
+  roomId: string;
+  balanceDifference: number;
+}
+
 // Move payload
 export interface MovePayload {
   roomId: string;
-  pos: number; // 0-8
+  move: string;
 }
 
 // WebSocket message types
 export type WebSocketMessageType =
   | "joinRoom"
   | "startGame"
+  | "bet"
   | "move"
   | "getAvailableRooms"
   | "room:state"
@@ -82,6 +89,11 @@ export interface StartGamePayload {
 export interface StartGameMessage extends WebSocketMessage {
   type: "startGame";
   payload: StartGamePayload;
+}
+
+export interface BetMessage extends WebSocketMessage {
+  type: "bet";
+  payload: BetPayload;
 }
 
 export interface MoveMessage extends WebSocketMessage {
@@ -188,6 +200,7 @@ export interface AppSessionStartGameMessage extends WebSocketMessage {
 export type WebSocketMessages =
   | JoinRoomMessage
   | StartGameMessage
+  | BetMessage
   | MoveMessage
   | RoomStateMessage
   | RoomReadyMessage
@@ -217,7 +230,6 @@ export interface MetaMaskEthereumProvider {
 // Add type definition for window.ethereum
 declare global {
   interface Window {
-    // @ts-ignore
     ethereum?: MetaMaskEthereumProvider;
   }
 }

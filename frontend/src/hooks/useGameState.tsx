@@ -114,7 +114,7 @@ export function useGameState(
         });
 
         // Set host status based on player role (X is always host)
-        if (lastMessage.players.X === eoaAddress) {
+        if (lastMessage.players?.X === eoaAddress) {
           console.log("Player is host (X)");
           setIsHost(true);
         } else {
@@ -137,6 +137,12 @@ export function useGameState(
         break;
 
       case "game:started":
+        setCurrentStatus({
+          status: "game-ready",
+          data: {
+            roomId: lastMessage.roomId,
+          },
+        });
         setIsGameStarted(true);
         setErrorMessage(null);
         break;

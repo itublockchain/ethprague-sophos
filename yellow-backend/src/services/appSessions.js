@@ -93,12 +93,12 @@ export async function generateAppSessionMessage(
           {
             participant: formattedParticipantA,
             asset: "usdc",
-            amount: "1",
+            amount: "0.001",
           },
           {
             participant: formattedParticipantB,
             asset: "usdc",
-            amount: "1",
+            amount: "0.001",
           },
           {
             participant: serverAddress,

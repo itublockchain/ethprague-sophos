@@ -10,7 +10,6 @@ import { useMetaMask } from "@/hooks/useMetaMask";
 import { useNitroliteIntegration } from "@/hooks/useNitroliteIntegration";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { useWebSocketNitrolite } from "@/hooks/useWebSocketNitrolite";
-import { AvailableRoom } from "@/types/Index";
 import { useAtom } from "jotai";
 import { StarterDialog } from "../Dialogs/StarterDialog/StarterDialog";
 import GamePart from "./GamePart/GamePart";
@@ -20,16 +19,12 @@ export default function Dashboard() {
   // Player's Ethereum address - now managed by useMetaMask hook in Lobby
   const [eoaAddress, setEoaAddress] = useState<string>("");
   // Game view state
-  const [gameView, setGameView] = useState<"lobby" | "game">("game");
 
   // WebSocket connection
   const {
-    error: wsError,
     lastMessage,
     joinRoom,
-    makeMove,
     startGame,
-    getAvailableRooms,
     sendAppSessionSignature,
     sendAppSessionStartGame,
   } = useWebSocket();
@@ -57,61 +52,60 @@ export default function Dashboard() {
     }
   }, [client, nitroliteLoading, nitroliteError, initializeNitroliteClient]);
 
-  const [availableRooms, setAvailableRooms] = useState<AvailableRoom[]>([]);
-  const [onlineUsers, setOnlineUsers] = useState<number>(1);
+  const [onlineUsers] = useState<number>(1);
 
   const { address } = useMetaMask();
 
   // Game state
-  const {
-    gameState,
-    gameOver,
-    roomId,
-    errorMessage,
-    isRoomReady,
-    isGameStarted,
-    isHost,
-    playerSymbol,
-    isPlayerTurn,
-    formatShortAddress,
-    getOpponentAddress,
-    resetGame,
-    awaitingHostStart,
-    signAndStartGame,
-    isSigningInProgress,
-    signatureError,
-  } = useGameState(
-    lastMessage,
-    eoaAddress,
-    sendAppSessionSignature,
-    sendAppSessionStartGame
-  );
+  const { roomId, isRoomReady, isHost, awaitingHostStart, signAndStartGame } =
+    useGameState(
+      lastMessage,
+      eoaAddress,
+      sendAppSessionSignature,
+      sendAppSessionStartGame
+    );
 
   const [isStarterDialogOpen, setIsStarterDialogOpen] = useState(false);
 
   const [currentStatus, setCurrentStatus] = useAtom(currentStatusAtom);
 
   useEffect(() => {
+    if (!address) {
+      setCurrentStatus({
+        status: "not-connected",
+        data: undefined,
+      });
+    } else {
+      setCurrentStatus({
+        status: "connected",
+        data: undefined,
+      });
+    }
+  }, [address]);
+
+  useEffect(() => {
     if (
       currentStatus.status === "not-connected" ||
-      currentStatus.status === "connected"
+      currentStatus.status === "connected" ||
+      currentStatus.status === "create-game" ||
+      currentStatus.status === "room-ready"
     ) {
       setIsStarterDialogOpen(true);
-    } else {
+    } else if (currentStatus.status === "game-ready") {
       setIsStarterDialogOpen(false);
     }
   }, [currentStatus]);
 
   useEffect(() => {
-    if (gameState.roomId) {
+    if (isRoomReady) {
       setCurrentStatus({
-        status: "connected",
+        status: "room-ready",
         data: {
-          roomId: gameState.roomId,
+          roomId: roomId,
         },
       });
     }
-  }, [gameState]);
+  }, [isRoomReady]);
 
   return (
     <>
@@ -140,6 +134,11 @@ export default function Dashboard() {
         isOpen={isStarterDialogOpen}
         setEoaAddress={setEoaAddress}
         joinRoom={joinRoom}
+        connectedUserCount={onlineUsers}
+        isHost={isHost}
+        awaitingHostStart={awaitingHostStart}
+        signAndStartGame={signAndStartGame}
+        startGame={startGame}
       />
     </>
   );

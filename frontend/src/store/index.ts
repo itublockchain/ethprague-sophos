@@ -1,9 +1,10 @@
+import { NitroliteClient } from "@erc7824/nitrolite";
 import { Store } from "./storeUtils";
 import type { Address, WalletClient } from "viem";
 
 // Nitrolite Store
 interface NitroliteStoreState {
-  client: any; // This would be NitroliteClient from the package
+  client: NitroliteClient | null;
   isInitialized: boolean;
 }
 
@@ -13,7 +14,7 @@ export const NitroliteStore = {
     isInitialized: false,
   }),
 
-  setClient(client: any): void {
+  setClient(client: NitroliteClient): void {
     this.state.set("client", client);
     this.state.set("isInitialized", true);
   },

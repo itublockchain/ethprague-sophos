@@ -78,9 +78,11 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
           }
           setKeyPair(parsed);
           console.log("Loaded existing keys from storage");
-          // @ts-ignore
         } catch (e) {
-          console.error("Failed to parse saved keys - will generate new ones");
+          console.error(
+            "Failed to parse saved keys - will generate new ones: ",
+            e
+          );
           localStorage.removeItem(CRYPTO_KEYPAIR_KEY);
           generateNewKeysAndStore();
         }
@@ -344,7 +346,7 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
     }
   }, []);
 
-  // @ts-ignore
+  // @ts-expect-error - signedRequest is not typed
   const sendRequest = useCallback(async (signedRequest) => {
     if (!clientRef.current?.isConnected) {
       const errorMsg = `Cannot send request: Not connected`;

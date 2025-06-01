@@ -1,10 +1,10 @@
 /**
- * Room manager for the tic-tac-toe game
+ * Room manager for the chess betting game
  */
 
-import { v4 as uuidv4 } from 'uuid';
-import { ethers } from 'ethers';
-import { makeMove } from './index.js';
+import { v4 as uuidv4 } from "uuid";
+import { ethers } from "ethers";
+import { placeBet } from "./index.js";
 
 /**
  * @typedef {Object} Room
@@ -42,12 +42,12 @@ export function createRoomManager() {
       id: roomId,
       players: {
         host: null,
-        guest: null
+        guest: null,
       },
       connections: new Map(),
       gameState: null,
       isReady: false,
-      createdAt: Date.now()
+      createdAt: Date.now(),
     });
     return roomId;
   }
@@ -62,12 +62,12 @@ export function createRoomManager() {
   function joinRoom(roomId, eoa, ws) {
     // Format address to proper checksum format
     const formattedEoa = ethers.getAddress(eoa);
-    
+
     // Check if player is already in another room
     if (addressToRoom.has(formattedEoa)) {
-      return { 
-        success: false, 
-        error: 'Player already in another room' 
+      return {
+        success: false,
+        error: "Player already in another room",
       };
     }
 
@@ -75,17 +75,17 @@ export function createRoomManager() {
     if (!rooms.has(roomId)) {
       return {
         success: false,
-        error: 'Room not found'
+        error: "Room not found",
       };
     }
-    
+
     let room = rooms.get(roomId);
 
     // Check if room is full
     if (room.players.host && room.players.guest) {
-      return { 
-        success: false, 
-        error: 'Room is full' 
+      return {
+        success: false,
+        error: "Room is full",
       };
     }
 
@@ -93,10 +93,10 @@ export function createRoomManager() {
     let role;
     if (!room.players.host) {
       room.players.host = formattedEoa;
-      role = 'host';
+      role = "host";
     } else if (!room.players.guest) {
       room.players.guest = formattedEoa;
-      role = 'guest';
+      role = "guest";
     }
 
     // Store connection and map address to room
@@ -105,71 +105,73 @@ export function createRoomManager() {
 
     // Check if room has both players (ready to potentially start)
     const isRoomFull = room.players.host && room.players.guest;
-    
+
     // Mark as ready when both players are present, but don't auto-start the game
     if (isRoomFull && !room.isReady) {
       room.isReady = true;
-      console.log(`Room ${roomId} is ready with players: ${room.players.host} (host) and ${room.players.guest} (guest)`);
+      console.log(
+        `Room ${roomId} is ready with players: ${room.players.host} (host) and ${room.players.guest} (guest)`
+      );
       // The game will be created when the host clicks "Start Game"
     }
 
-    return { 
-      success: true, 
-      roomId, 
+    return {
+      success: true,
+      roomId,
       role,
-      isRoomReady: isRoomFull
+      isRoomReady: isRoomFull,
     };
   }
 
   /**
-   * Process a move in a game
+   * Process a bet in a game
    * @param {string} roomId - Room ID
-   * @param {number} position - Position on the board (0-8)
+   * @param {number} balanceDifference - Balance difference for the bet (+30 or -30)
    * @param {string} eoa - Player's Ethereum address
    * @returns {Object} Result with success flag and additional info
    */
-  function processMove(roomId, position, eoa) {
+  function processBet(roomId, balanceDifference, eoa) {
     // Format address to proper checksum format
     const formattedEoa = ethers.getAddress(eoa);
-    
+
     if (!rooms.has(roomId)) {
-      return { 
-        success: false, 
-        error: 'Room not found' 
+      return {
+        success: false,
+        error: "Room not found",
       };
     }
 
     const room = rooms.get(roomId);
-    
+
     // Check if player is in this room
     if (!room.connections.has(formattedEoa)) {
-      return { 
-        success: false, 
-        error: 'Player not in this room' 
+      return {
+        success: false,
+        error: "Player not in this room",
       };
     }
 
     // Check if the game has started
     if (!room.gameState) {
-      return { 
-        success: false, 
-        error: 'Game has not started' 
+      return {
+        success: false,
+        error: "Game has not started",
       };
     }
 
-    // Make the move
-    const result = makeMove(room.gameState, position, formattedEoa);
+    // Place the bet
+    const result = placeBet(room.gameState, balanceDifference, formattedEoa);
     if (!result.success) {
       return result;
     }
 
     // Update game state
     room.gameState = result.gameState;
-    
+
     return {
       success: true,
       gameState: room.gameState,
-      isGameOver: room.gameState.isGameOver
+      isGameOver: room.gameState.isGameOver,
     };
   }
 
@@ -181,39 +183,39 @@ export function createRoomManager() {
   function leaveRoom(eoa) {
     // Format address to proper checksum format
     const formattedEoa = ethers.getAddress(eoa);
-    
+
     if (!addressToRoom.has(formattedEoa)) {
-      return { 
-        success: false, 
-        error: 'Player not in any room' 
+      return {
+        success: false,
+        error: "Player not in any room",
       };
     }
 
     const roomId = addressToRoom.get(formattedEoa);
     const room = rooms.get(roomId);
-    
+
     // Clean up player connections
     if (room) {
       room.connections.delete(formattedEoa);
-      
+
       // Update player list
       if (room.players.host === formattedEoa) {
         room.players.host = null;
       } else if (room.players.guest === formattedEoa) {
         room.players.guest = null;
       }
-      
+
       // Clean up room if empty
       if (!room.players.host && !room.players.guest) {
         rooms.delete(roomId);
       }
     }
-    
+
     addressToRoom.delete(formattedEoa);
-    
-    return { 
-      success: true, 
-      roomId 
+
+    return {
+      success: true,
+      roomId,
     };
   }
 
@@ -225,12 +227,13 @@ export function createRoomManager() {
    */
   function broadcastToRoom(roomId, type, data) {
     if (!rooms.has(roomId)) return;
-    
+
     const room = rooms.get(roomId);
     const message = JSON.stringify({ type, ...data });
-    
+
     for (const connection of room.connections.values()) {
-      if (connection.ws.readyState === 1) { // WebSocket.OPEN
+      if (connection.ws.readyState === 1) {
+        // WebSocket.OPEN
         connection.ws.send(message);
       }
     }
@@ -242,14 +245,14 @@ export function createRoomManager() {
    */
   function closeRoom(roomId) {
     if (!rooms.has(roomId)) return;
-    
+
     const room = rooms.get(roomId);
-    
+
     // Remove all players from the room
     for (const eoa of room.connections.keys()) {
       addressToRoom.delete(eoa);
     }
-    
+
     // Delete the room
     rooms.delete(roomId);
   }
@@ -260,9 +263,9 @@ export function createRoomManager() {
     addressToRoom,
     createRoom,
     joinRoom,
-    processMove,
+    processBet,
     leaveRoom,
     broadcastToRoom,
-    closeRoom
+    closeRoom,
   };
 }

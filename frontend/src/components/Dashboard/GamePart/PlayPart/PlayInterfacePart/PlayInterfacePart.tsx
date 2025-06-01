@@ -1,3 +1,4 @@
+import { useWebSocket } from "@/hooks/useWebSocket";
 import { BetData, GamePreviewData } from "@/types/Chess";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -14,6 +15,8 @@ export default function PlayInterfacePart({ gameId }: Props) {
   const [hoveredMove, setHoveredMove] = useState<string | null>(null);
   const [currentBet, setCurrentBet] = useState<BetData | null>(null);
   const currentBetRef = useRef<BetData | null>(null);
+
+  const { makeBet } = useWebSocket();
 
   // Keep ref in sync with state
   useEffect(() => {
@@ -77,11 +80,21 @@ export default function PlayInterfacePart({ gameId }: Props) {
     setCurrentBet(updatedBet);
 
     if (isWin) {
+      makeBet({
+        roomId: gameId,
+        balanceDifference: currentBetRef.current.betAmount,
+      });
+
       toast.success(`🎉 You won! Actual move: ${actualMove.toUpperCase()}`, {
         description: `You correctly predicted the move and won $${currentBetRef.current.betAmount}!`,
         duration: 5000,
       });
     } else {
+      makeBet({
+        roomId: gameId,
+        balanceDifference: -currentBetRef.current.betAmount,
+      });
+
       toast.error(`😔 You lost! Actual move: ${actualMove.toUpperCase()}`, {
         description: `You predicted ${currentBetRef.current.predictedMove.toUpperCase()} but the actual move was different. You lost $${
           currentBetRef.current.betAmount

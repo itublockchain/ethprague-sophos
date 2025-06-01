@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { ethers } from "ethers";
+import { Eip1193Provider, ethers } from "ethers";
 
 interface NetworkInfo {
   chainId: string;
@@ -48,7 +48,7 @@ export function useMetaMask() {
   // Check if MetaMask is installed
   const checkIfMetaMaskInstalled = useCallback((): boolean => {
     if (!isBrowser) return false;
-    const { ethereum } = window as any;
+    const { ethereum } = window;
     return Boolean(ethereum && ethereum.isMetaMask);
   }, [isBrowser]);
 
@@ -104,7 +104,8 @@ export function useMetaMask() {
         );
       }
 
-      const { ethereum } = window as any;
+      const { ethereum } = window;
+      // @ts-expect-error - error is not typed
       const provider = new ethers.BrowserProvider(ethereum);
 
       // Request accounts access
@@ -137,12 +138,14 @@ export function useMetaMask() {
       });
 
       return { address, network: networkInfo };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error connecting to MetaMask:", error);
       const errorMessage =
+        // @ts-expect-error - error is not typed
         error.code === 4001
           ? "Connection rejected by user"
-          : error.message || "Failed to connect to MetaMask";
+          : // @ts-expect-error - error is not typed
+            error.message || "Failed to connect to MetaMask";
 
       setState((prev) => ({
         ...prev,
@@ -189,13 +192,15 @@ export function useMetaMask() {
           throw new Error("No provider available");
         }
 
-        const { ethereum } = window as any;
+        const { ethereum } = window;
+        // @ts-expect-error - ethereum is not typed
         await ethereum.request({
           method: "wallet_switchEthereumChain",
           params: [{ chainId }],
         });
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("Error switching network:", error);
+        // @ts-expect-error - error is not typed
         if (error.code === 4902) {
           // Network not added to MetaMask
           throw new Error(
@@ -246,52 +251,51 @@ export function useMetaMask() {
   );
 
   // Handle chain changes
-  const handleChainChanged = useCallback(
-    async (chainId: string) => {
-      const currentState = stateRef.current;
+  const handleChainChanged = useCallback(async () => {
+    const currentState = stateRef.current;
 
-      if (currentState.provider && currentState.address) {
-        try {
-          const [networkInfo, balance] = await Promise.all([
-            getNetworkInfo(currentState.provider),
-            getBalance(currentState.provider, currentState.address),
-          ]);
+    if (currentState.provider && currentState.address) {
+      try {
+        const [networkInfo, balance] = await Promise.all([
+          getNetworkInfo(currentState.provider),
+          getBalance(currentState.provider, currentState.address),
+        ]);
 
-          setState((prev) => ({
-            ...prev,
-            network: networkInfo,
-            balance,
-            error: null,
-          }));
-        } catch (error) {
-          console.error("Error handling chain change:", error);
-          setState((prev) => ({
-            ...prev,
-            error: "Failed to update network information",
-          }));
-        }
+        setState((prev) => ({
+          ...prev,
+          network: networkInfo,
+          balance,
+          error: null,
+        }));
+      } catch (error) {
+        console.error("Error handling chain change:", error);
+        setState((prev) => ({
+          ...prev,
+          error: "Failed to update network information",
+        }));
       }
-    },
-    [getNetworkInfo, getBalance]
-  );
+    }
+  }, [getNetworkInfo, getBalance]);
 
   // Initialize and set up event listeners
   useEffect(() => {
     // Only run on client side
     if (!isBrowser || !checkIfMetaMaskInstalled()) return;
 
-    const { ethereum } = window as any;
+    const { ethereum } = window;
 
     // Subscribe to events
-    ethereum.on("accountsChanged", handleAccountsChanged);
-    ethereum.on("chainChanged", handleChainChanged);
+    ethereum?.on("accountsChanged", handleAccountsChanged);
+    ethereum?.on("chainChanged", handleChainChanged);
 
     // Check if already connected
     const checkConnection = async () => {
       try {
-        const accounts = await ethereum.request({ method: "eth_accounts" });
+        const accounts = await ethereum?.request({ method: "eth_accounts" });
         if (accounts.length > 0) {
-          const provider = new ethers.BrowserProvider(ethereum);
+          const provider = new ethers.BrowserProvider(
+            ethereum as Eip1193Provider
+          );
           const address = ethers.getAddress(accounts[0]);
           const signer = await provider.getSigner();
 
@@ -311,7 +315,7 @@ export function useMetaMask() {
             balance,
           });
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Error checking accounts:", err);
         setState((prev) => ({
           ...prev,
@@ -324,7 +328,7 @@ export function useMetaMask() {
 
     // Cleanup listeners on unmount
     return () => {
-      if (ethereum.removeListener) {
+      if (ethereum?.removeListener) {
         ethereum.removeListener("accountsChanged", handleAccountsChanged);
         ethereum.removeListener("chainChanged", handleChainChanged);
       }

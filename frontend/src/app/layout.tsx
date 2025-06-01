@@ -17,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Sagittarius",
-  description: "Sagittarius is a platform for managing your business.",
+  title: "Sophos",
+  description: "Bet you can't beat the pawn!",
 };
 
 export default function RootLayout({
@@ -28,6 +28,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" href="/images/sophos.png" />
+      </head>
       <body
         className={`flex flex-col min-h-screen w-full ${geistSans.variable} ${geistMono.variable} antialiased`}
       >

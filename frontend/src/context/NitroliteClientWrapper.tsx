@@ -125,8 +125,7 @@ export function NitroliteClientWrapper({
           return;
         }
 
-        // Check if window.ethereum is available
-        if (!(window as any).ethereum) {
+        if (!window.ethereum) {
           setClientState((prev) => ({
             ...prev,
             loading: false,
@@ -150,7 +149,7 @@ export function NitroliteClientWrapper({
 
         // Use MetaMask provider for the walletClient
         console.log("Creating wallet client with ethereum provider...");
-        const ethereum = (window as any).ethereum;
+        const ethereum = window.ethereum;
         console.log(
           "Ethereum provider:",
           ethereum ? "available" : "not available"
@@ -202,7 +201,7 @@ export function NitroliteClientWrapper({
         const client = new NitroliteClient({
           publicClient,
           walletClient,
-          // @ts-ignore
+          // @ts-expect-error - stateWalletClient is not typed
           stateWalletClient: stateWalletClient,
           account: walletClient.account,
           chainId: polygon.id,

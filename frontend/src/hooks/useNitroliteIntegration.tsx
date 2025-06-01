@@ -3,6 +3,7 @@ import { NitroliteStore, WalletStore } from "../store";
 import { useStore } from "../store/storeUtils";
 import { useWebSocketContext } from "../context/WebSocketContext";
 import { useChannel } from "./useChannel";
+import { NitroliteClient } from "@erc7824/nitrolite";
 
 /**
  * This hook integrates the WebSocket connections with Nitrolite channels
@@ -45,9 +46,12 @@ export function useNitroliteIntegration() {
   /**
    * Initialize the Nitrolite client when necessary
    */
-  const initializeNitroliteClient = useCallback(async (clientInstance: any) => {
-    NitroliteStore.setClient(clientInstance);
-  }, []);
+  const initializeNitroliteClient = useCallback(
+    async (clientInstance: NitroliteClient) => {
+      NitroliteStore.setClient(clientInstance);
+    },
+    []
+  );
 
   /**
    * Handle WebSocket disconnection

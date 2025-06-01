@@ -170,7 +170,7 @@ export default function GamePreview({ channelData, className }: Props) {
 
   return (
     <Link
-      href={`/?gameId=${channelData.gameId}`}
+      href={`/game/?gameId=${channelData.gameId}`}
       id="container"
       className={cn(
         "relative flex flex-col gap-3 border border-gray-500 rounded-lg p-3",

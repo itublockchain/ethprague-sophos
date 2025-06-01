@@ -1,7 +1,12 @@
 import { atom } from "jotai";
 
 type CurrentStatus = {
-  status: "not-connected" | "connected" | "join-game" | "create-game";
+  status:
+    | "not-connected"
+    | "connected"
+    | "create-game"
+    | "room-ready"
+    | "game-ready";
   data?: {
     roomId: string;
   };

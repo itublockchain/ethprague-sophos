@@ -10,7 +10,7 @@ export default function PlayPart({ gameId }: Props) {
   return (
     <div id="root" className="flex flex-col w-full h-full gap-4">
       <Link
-        href="/"
+        href="/game"
         id="label"
         className="flex flex-row gap-2 items-center text-sm hover:underline"
       >
