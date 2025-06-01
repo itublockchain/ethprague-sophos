@@ -30,11 +30,32 @@ app.get("/api/game/id", async (req: Request, res: Response): Promise<any> => {
 app.post(
   "/api/game/changeID",
   async (req: Request, res: Response): Promise<any> => {
-    const { id } = req.body;
-    gameID = id;
+
+    const data = await fetch("https://lichess.org/api/tv/channels", {
+      headers: {
+        "Accept": "application/json",
+       },
+    }).then(res => res.json());
+
+    if(!data) return;
+  
+    const keys = Object.keys(data);
+
+    const randomIndex = Math.floor(keys.length*Math.random());
+
+    if(!keys[randomIndex]) return;
+
+    //@ts-ignore
+    const randomGame = data[keys[randomIndex]];
+
+    if(!randomGame) return;
+
+    //@ts-ignore
+    const id = randomGame.gameId;
+    
 
     await redisConnection.changeGameID(id);
-    console.log("[Express]: Game ID changed to: ", id);
+    console.log("[Express]: Game ID changed to: ", id); 
 
     res.send(200);
   }
