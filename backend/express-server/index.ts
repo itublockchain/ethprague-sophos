@@ -37,20 +37,9 @@ app.post(
     }).then(res => res.json());
 
     if(!data) return;
-  
-    const keys = Object.keys(data);
-
-    const randomIndex = Math.floor(keys.length*Math.random());
-
-    if(!keys[randomIndex]) return;
 
     //@ts-ignore
-    const randomGame = data[keys[randomIndex]];
-
-    if(!randomGame) return;
-
-    //@ts-ignore
-    const id = randomGame.gameId;
+    const id = data.rapid.gameId;
     
 
     await redisConnection.changeGameID(id);
