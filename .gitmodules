@@ -1,0 +1,3 @@
+[submodule "vlayer-contracts/lib/forge-std"]
+	path = vlayer-contracts/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
