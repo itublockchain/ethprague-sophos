@@ -1,10 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Spinner } from "@/components/ui/spinner";
+import { ShineBorder } from "@/components/magicui/shine-border";
 import { useBestMove } from "@/hooks/useBestMove";
 import { useChessMoves } from "@/hooks/useGetMoves";
 import { GamePreviewData, BetData } from "@/types/Chess";
-import { useState, useMemo, useCallback } from "react";
+import { GameState } from "@/types/Index";
+import Image from "next/image";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 
 type Props = {
   gameData: GamePreviewData | null;
@@ -14,6 +17,7 @@ type Props = {
   setHoveredMove: (move: string | null) => void;
   onPlaceBet: (predictedMove: string, betAmount: number) => void;
   currentBet: BetData | null;
+  gameState: GameState;
 };
 
 const BET_AMOUNT_LIMITS = {
@@ -48,12 +52,47 @@ export default function BetPart({
   setHoveredMove,
   onPlaceBet,
   currentBet,
+  gameState,
 }: Props) {
   const fen = gameData?.fen || "";
 
   const { bestMove } = useBestMove({ fen });
   const { moves } = useChessMoves(fen);
   const [betAmount, setBetAmount] = useState<number>(BET_AMOUNT_LIMITS.DEFAULT);
+
+  const [amount, setAmount] = useState(100); // Start with initial balance of $100
+  const previousBetRef = useRef<BetData | null>(null);
+
+  // Effect to handle balance updates based on bet status changes
+  useEffect(() => {
+    const previousBet = previousBetRef.current;
+
+    // If there's a current bet and it's different from the previous one
+    if (currentBet && (!previousBet || currentBet !== previousBet)) {
+      // If the bet just transitioned from null to pending, deduct the bet amount
+      if (currentBet.status === "pending" && !previousBet) {
+        setAmount((prevAmount) =>
+          Math.max(0, prevAmount - currentBet.betAmount)
+        );
+      }
+
+      // If the bet was resolved (transitioned from pending to won/lost)
+      if (
+        previousBet?.status === "pending" &&
+        currentBet.status !== "pending"
+      ) {
+        if (currentBet.status === "won") {
+          // Add back the bet amount plus winnings (2x the bet amount for winning)
+          setAmount((prevAmount) => prevAmount + currentBet.betAmount * 2);
+        }
+        // If lost, the money was already deducted when the bet was placed
+        // so no additional action needed
+      }
+    }
+
+    // Update the ref to track the current bet for next comparison
+    previousBetRef.current = currentBet;
+  }, [currentBet]);
 
   // Memoized utility functions
   const formatMove = useCallback((from: string, to: string): string => {
@@ -151,10 +190,33 @@ export default function BetPart({
   }
 
   return (
-    <div className="flex flex-col w-full h-full gap-6 lg:p-4">
-      <Header />
+    <div className="flex flex-col w-full h-full items-center gap-6 bg-gray-100 p-10">
+      {/* <Header /> */}
 
-      <div className="flex flex-col h-full gap-6">
+      <div className="flex flex-col justify-between w-full h-full">
+        <div
+          id="room-owner-and-label"
+          className="flex flex-row justify-between"
+        >
+          <div id="owner" className="text-2xl font-thin">
+            Yunus's Room
+          </div>
+
+          <Image src="/images/sophos.png" alt="close" width={32} height={32} />
+        </div>
+
+        <div
+          id="total-balance"
+          className="flex flex-col justify-center items-center gap-3"
+        >
+          <div id="balance" className="text-xl font-thin">
+            Total Balance
+          </div>
+          <div id="amount" className="text-7xl font-bold">
+            ${amount}
+          </div>
+        </div>
+
         <MoveSelection
           bestMove={bestMove}
           moves={moves}
@@ -167,18 +229,18 @@ export default function BetPart({
           disabled={hasPendingBet}
         />
 
-        <BetAmountSection
+        {/* <BetAmountSection
           betAmount={betAmount}
           onBetAmountChange={handleBetAmountChange}
           disabled={hasPendingBet}
-        />
+        /> */}
 
-        <SubmitButton
+        {/* <SubmitButton
           isEnabled={isSubmitEnabled}
           text={submitButtonText}
           onClick={handleSubmitBet}
           isPending={hasPendingBet}
-        />
+        /> */}
       </div>
 
       <CustomScrollbarStyles />
@@ -217,132 +279,95 @@ function MoveSelection({
   getMoveKey,
   disabled = false,
 }: MoveSelectionProps) {
-  return (
-    <div
-      className={`flex flex-col gap-4 p-5 rounded-xl border-2 border-gray-200 bg-gradient-to-br from-gray-50 to-white shadow-lg ${
-        disabled ? "opacity-60" : ""
-      }`}
-    >
-      <BestMoveSection
-        bestMove={bestMove}
-        selectedMove={selectedMove}
-        onMoveSelect={onMoveSelect}
-        onMoveHover={onMoveHover}
-        disabled={disabled}
-      />
-
-      <OtherMovesSection
-        moves={moves}
-        bestMove={bestMove}
-        selectedMove={selectedMove}
-        onMoveSelect={onMoveSelect}
-        onMoveHover={onMoveHover}
-        formatMove={formatMove}
-        getMoveKey={getMoveKey}
-        disabled={disabled}
-      />
-    </div>
-  );
-}
-
-interface BestMoveSectionProps {
-  bestMove: string;
-  selectedMove: string | null;
-  onMoveSelect: (move: string) => void;
-  onMoveHover: (move: string | null) => void;
-  disabled?: boolean;
-}
-
-function BestMoveSection({
-  bestMove,
-  selectedMove,
-  onMoveSelect,
-  onMoveHover,
-  disabled = false,
-}: BestMoveSectionProps) {
-  const isSelected = selectedMove === bestMove;
+  // Sample bet amounts for display - in a real app this would come from props or state
+  const sampleBetAmount = 5;
 
   return (
-    <div className="flex flex-col gap-3 w-full">
-      <SectionHeader
-        color={MOVE_COLORS.BEST.indicator}
-        title="Best Move"
-        animated
-      />
+    <div className="flex flex-col gap-4 w-full">
+      {/* Best Move with Shine Border */}
+      <div className="relative">
+        <div
+          className={`flex flex-row items-center justify-between p-4 rounded-lg border ${
+            selectedMove === bestMove
+              ? "bg-green-50 border-green-200"
+              : "bg-white border-gray-200"
+          } cursor-pointer transition-all duration-200 ${
+            disabled ? "opacity-60 cursor-not-allowed" : "hover:bg-gray-50"
+          }`}
+          onClick={() => !disabled && onMoveSelect(bestMove)}
+          onMouseEnter={() => !disabled && onMoveHover(bestMove)}
+          onMouseLeave={() => !disabled && onMoveHover(null)}
+        >
+          <div className="flex items-center gap-4">
+            {/* Chess piece icon (queen/crown for best move) */}
+            <div className="text-2xl">👑</div>
 
-      <Button
-        type="button"
-        className={`w-full h-14 transition-all duration-200 border-2 ${
-          isSelected ? MOVE_COLORS.BEST.selected : MOVE_COLORS.BEST.unselected
-        }`}
-        onClick={() => onMoveSelect(bestMove)}
-        onMouseEnter={() => onMoveHover(bestMove)}
-        onMouseLeave={() => onMoveHover(null)}
-        disabled={disabled}
-      >
-        {bestMove.toUpperCase()}
-        {isSelected && <span className="ml-2 text-sm">✓</span>}
-      </Button>
-    </div>
-  );
-}
+            {/* Arrow */}
+            <div className="text-gray-400">→</div>
 
-interface OtherMovesSectionProps {
-  moves: Array<{ from: string; to: string }>;
-  bestMove: string;
-  selectedMove: string | null;
-  onMoveSelect: (move: string) => void;
-  onMoveHover: (move: string | null) => void;
-  formatMove: (from: string, to: string) => string;
-  getMoveKey: (from: string, to: string) => string;
-  disabled?: boolean;
-}
+            {/* Move notation */}
+            <div className="text-lg font-medium text-gray-800">
+              {bestMove.toUpperCase()}
+            </div>
+          </div>
 
-function OtherMovesSection({
-  moves,
-  bestMove,
-  selectedMove,
-  onMoveSelect,
-  onMoveHover,
-  formatMove,
-  getMoveKey,
-  disabled = false,
-}: OtherMovesSectionProps) {
-  // Filter out the best move from other moves
-  const otherMoves = useMemo(
-    () => moves.filter((move) => getMoveKey(move.from, move.to) !== bestMove),
-    [moves, bestMove, getMoveKey]
-  );
+          {/* Bet amount */}
+          <div className="text-lg font-semibold text-gray-800">
+            {sampleBetAmount}$
+          </div>
+        </div>
 
-  return (
-    <div className="flex flex-col gap-3 w-full">
-      <SectionHeader color={MOVE_COLORS.OTHER.indicator} title="Other Moves" />
+        {/* Shine Border Effect for Best Move */}
+        <ShineBorder
+          shineColor={["#FFD700", "#FFA500", "#FFD700"]}
+          duration={3}
+          borderWidth={2}
+          className="rounded-lg"
+        />
+      </div>
 
-      <div className="flex flex-col gap-2 w-full max-h-[30vh] overflow-y-auto pr-2 custom-scrollbar">
-        {otherMoves.map((move, index) => {
+      {/* Other Moves - Show exactly 3 to make total 4 */}
+      {moves
+        .filter((move) => getMoveKey(move.from, move.to) !== bestMove)
+        .slice(0, 3) // Show only first 3 other moves to make total 4
+        .map((move, index) => {
           const moveKey = getMoveKey(move.from, move.to);
           const isSelected = selectedMove === moveKey;
 
           return (
-            <Button
-              type="button"
+            <div
               key={`${move.from}-${move.to}-${index}`}
-              className={`w-full h-12 font-semibold transition-all duration-200 border-2 ${
+              className={`flex flex-row items-center justify-between p-4 rounded-lg border ${
                 isSelected
-                  ? MOVE_COLORS.OTHER.selected
-                  : MOVE_COLORS.OTHER.unselected
+                  ? "bg-blue-50 border-blue-200"
+                  : "bg-white border-gray-200"
+              } cursor-pointer transition-all duration-200 ${
+                disabled ? "opacity-60 cursor-not-allowed" : "hover:bg-gray-50"
               }`}
-              onClick={() => onMoveSelect(moveKey)}
-              onMouseEnter={() => onMoveHover(moveKey)}
-              onMouseLeave={() => onMoveHover(null)}
-              disabled={disabled}
+              onClick={() => !disabled && onMoveSelect(moveKey)}
+              onMouseEnter={() => !disabled && onMoveHover(moveKey)}
+              onMouseLeave={() => !disabled && onMoveHover(null)}
             >
-              {formatMove(move.from, move.to)}
-              {isSelected && <span className="ml-2 text-sm">✓</span>}
-            </Button>
+              <div className="flex items-center gap-4">
+                {/* Chess piece icon (queen/crown for other moves too) */}
+                <div className="text-2xl">👑</div>
+
+                {/* Arrow */}
+                <div className="text-gray-400">→</div>
+
+                {/* Move notation */}
+                <div className="text-lg font-medium text-gray-800">
+                  {formatMove(move.from, move.to)}
+                </div>
+              </div>
+
+              {/* Bet amount */}
+              <div className="text-lg font-semibold text-gray-800">
+                ${sampleBetAmount}
+              </div>
+            </div>
           );
         })}
-      </div>
     </div>
   );
 }

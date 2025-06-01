@@ -12,7 +12,7 @@ import { currentStatusAtom } from "@/atoms/CurrentStatusAtom";
 
 // Initial empty game state
 const EMPTY_BOARD = Array(9).fill(null);
-const INITIAL_GAME_STATE: GameState = {
+ const INITIAL_GAME_STATE: GameState = {
   roomId: "",
   board: EMPTY_BOARD,
   nextTurn: "X",

@@ -1,5 +1,6 @@
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { BetData, GamePreviewData } from "@/types/Chess";
+import { GameState } from "@/types/Index";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import BetPart from "./BetPart/BetPart";
@@ -7,9 +8,10 @@ import BoardPart from "./BoardPart/BoardPart";
 
 type Props = {
   gameId: string;
+  gameState: GameState;
 };
 
-export default function PlayInterfacePart({ gameId }: Props) {
+export default function PlayInterfacePart({ gameId, gameState }: Props) {
   const [gameData, setGameData] = useState<GamePreviewData | null>(null);
   const [selectedMove, setSelectedMove] = useState<string | null>(null);
   const [hoveredMove, setHoveredMove] = useState<string | null>(null);
@@ -48,11 +50,7 @@ export default function PlayInterfacePart({ gameId }: Props) {
   );
 
   const handleBetResult = useCallback((actualMove: string) => {
-    console.log("handleBetResult called with actualMove:", actualMove);
-    console.log("currentBet:", currentBetRef.current);
-
     if (!currentBetRef.current || currentBetRef.current.status !== "pending") {
-      console.log("No pending bet, skipping evaluation");
       return;
     }
 
@@ -60,16 +58,7 @@ export default function PlayInterfacePart({ gameId }: Props) {
     const normalizedPredictedMove =
       currentBetRef.current.predictedMove.toLowerCase();
 
-    console.log(
-      "Comparing moves - predicted:",
-      normalizedPredictedMove,
-      "actual:",
-      normalizedActualMove
-    );
-
     const isWin = normalizedActualMove === normalizedPredictedMove;
-
-    console.log("Bet result:", isWin ? "WIN" : "LOSS");
 
     const updatedBet: BetData = {
       ...currentBetRef.current,
@@ -107,21 +96,9 @@ export default function PlayInterfacePart({ gameId }: Props) {
   return (
     <div
       id="root"
-      className="flex flex-col gap-5 lg:gap-0 lg:flex-row w-full h-full"
+      className="flex flex-col gap-5 lg:gap-0 lg:flex-row w-full h-screen"
     >
-      <div id="board-container" className="flex w-full lg:w-1/2">
-        <BoardPart
-          gameId={gameId}
-          setGameData={setGameData}
-          selectedMove={selectedMove}
-          setSelectedMove={setSelectedMove}
-          hoveredMove={hoveredMove}
-          onNewMove={handleBetResult}
-          currentBet={currentBet}
-        />
-      </div>
-
-      <div id="bet-container" className="flex w-full lg:w-1/2">
+      <div id="bet-container" className="flex w-full h-full lg:w-1/3">
         <BetPart
           gameData={gameData}
           selectedMove={selectedMove}
@@ -130,6 +107,20 @@ export default function PlayInterfacePart({ gameId }: Props) {
           setHoveredMove={setHoveredMove}
           onPlaceBet={handlePlaceBet}
           currentBet={currentBet}
+          gameState={gameState}
+        />
+      </div>
+
+      <div id="board-container" className="flex w-full h-full lg:w-2/3">
+        <BoardPart
+          gameId={gameId}
+          setGameData={setGameData}
+          selectedMove={selectedMove}
+          setSelectedMove={setSelectedMove}
+          hoveredMove={hoveredMove}
+          onNewMove={handleBetResult}
+          currentBet={currentBet}
+          gameState={gameState}
         />
       </div>
     </div>

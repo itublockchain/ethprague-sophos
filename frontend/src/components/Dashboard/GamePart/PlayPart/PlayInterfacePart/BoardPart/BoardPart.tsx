@@ -1,9 +1,8 @@
-import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
-import { GamePreviewData, BetData } from "@/types/Chess";
+import { BetData, GamePreviewData } from "@/types/Chess";
+import { GameState } from "@/types/Index";
 import { Chess } from "chess.js";
-import { Clock, Gamepad2, RotateCcw, Star, Trophy, Zap } from "lucide-react";
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Chessboard } from "react-chessboard";
 import { Arrow } from "react-chessboard/dist/chessboard/types";
 
@@ -15,6 +14,7 @@ type Props = {
   hoveredMove: string | null;
   onNewMove: (actualMove: string) => void;
   currentBet: BetData | null;
+  gameState: GameState;
 };
 
 const formatGameTime = (timestamp: number) => {
@@ -348,9 +348,9 @@ export default function BoardPart({
   return (
     <div
       id="root"
-      className="flex flex-col justify-between items-center w-full h-full"
+      className="flex flex-col justify-center items-center w-full h-full"
     >
-      <div
+      {/* <div
         id="badges"
         className="flex flex-row flex-wrap gap-2 w-full lg:w-[90%]"
       >
@@ -422,9 +422,9 @@ export default function BoardPart({
             </Badge>
           </>
         )}
-      </div>
+      </div> */}
 
-      <div id="board-container" className="flex w-full lg:w-[90%] self-center">
+      <div id="board-container" className="flex w-full lg:w-[50%] self-center">
         <Chessboard
           position={gameState?.fen || "start"}
           areArrowsAllowed={false}
@@ -433,7 +433,7 @@ export default function BoardPart({
         />
       </div>
 
-      <div id="sub-badges" className="flex flex-col gap-3 w-full lg:w-[90%]">
+      {/* <div id="sub-badges" className="flex flex-col gap-3 w-full lg:w-[90%]">
         <div id="label" className="text-sm text-center font-semibold">
           Remaning Times
         </div>
@@ -455,7 +455,7 @@ export default function BoardPart({
             <span>Black: {gameState?.blackTime} Seconds</span>
           </Badge>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }

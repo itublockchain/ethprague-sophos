@@ -57,13 +57,19 @@ export default function Dashboard() {
   const { address } = useMetaMask();
 
   // Game state
-  const { roomId, isRoomReady, isHost, awaitingHostStart, signAndStartGame } =
-    useGameState(
-      lastMessage,
-      eoaAddress,
-      sendAppSessionSignature,
-      sendAppSessionStartGame
-    );
+  const {
+    roomId,
+    isRoomReady,
+    isHost,
+    awaitingHostStart,
+    signAndStartGame,
+    gameState,
+  } = useGameState(
+    lastMessage,
+    eoaAddress,
+    sendAppSessionSignature,
+    sendAppSessionStartGame
+  );
 
   const [isStarterDialogOpen, setIsStarterDialogOpen] = useState(false);
 
@@ -109,7 +115,7 @@ export default function Dashboard() {
 
   return (
     <>
-      <div
+      {/* <div
         id="root"
         className="flex flex-col w-full lg:flex-row  gap-5 p-5 lg:p-14"
       >
@@ -128,7 +134,11 @@ export default function Dashboard() {
             <GamePart />
           </Suspense>
         </div>
-      </div>
+      </div> */}
+
+      <Suspense fallback={<div>Loading...</div>}>
+        <GamePart gameState={gameState} />
+      </Suspense>
 
       <StarterDialog
         isOpen={isStarterDialogOpen}

@@ -1,23 +1,50 @@
-import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import PlayPart from "./PlayPart/PlayPart";
-import PreviewPart from "./Preview/PreviewPart";
+import PlayInterfacePart from "./PlayPart/PlayInterfacePart/PlayInterfacePart";
+import { Spinner } from "@/components/ui/spinner";
+import { GameState } from "@/types/Index";
 
-export default function GamePart() {
-  const [selectedGameId, setSelectedGameId] = useState("");
+type Props = {
+  gameState: GameState;
+};
 
-  const searchParams = useSearchParams();
+export default function GamePart({ gameState }: Props) {
+  const [gameId, setGameId] = useState("");
+
+  const handleGetGameId = async () => {
+    try {
+      const response = await fetch("/api/game/id", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        console.error(
+          "Response is not ok from server: ",
+          await response.text()
+        );
+        return setGameId("");
+      }
+
+      const data = (await response.json()) as { gameID: string };
+
+      console.log("Data: ", data);
+
+      setGameId(data.gameID);
+    } catch (error) {
+      console.error("Error: ", error);
+      setGameId("");
+    }
+  };
 
   useEffect(() => {
-    const gameId = searchParams.get("gameId") as string;
-    if (!gameId) setSelectedGameId("");
+    handleGetGameId();
+  }, []);
 
-    setSelectedGameId(gameId);
-  }, [searchParams]);
-
-  if (!selectedGameId) {
-    return <PreviewPart />;
+  if (!gameId) {
+    return <Spinner />;
   }
 
-  return <PlayPart gameId={selectedGameId} />;
+  return <PlayInterfacePart gameId={gameId} gameState={gameState} />;
 }

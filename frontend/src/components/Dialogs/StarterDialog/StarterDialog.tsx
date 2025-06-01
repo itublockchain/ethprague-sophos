@@ -31,7 +31,7 @@ import {
   Users,
   Wallet,
 } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 
 type Props = {
   isOpen: boolean;
@@ -54,8 +54,8 @@ export function StarterDialog({
   signAndStartGame,
   startGame,
 }: Props) {
-  const [currentStatus] = useAtom(currentStatusAtom);
-  const { connectWallet, address } = useMetaMask();
+  const [currentStatus, setCurrentStatus] = useAtom(currentStatusAtom);
+  const { connectWallet, address, isConnected } = useMetaMask();
 
   const [gameId, setGameId] = useState("");
   const [isConnecting, setIsConnecting] = useState(false);
@@ -64,6 +64,13 @@ export function StarterDialog({
   const [isStartingGame, setIsStartingGame] = useState(false);
   const [gameIdError, setGameIdError] = useState("");
   const [copiedGameId, setCopiedGameId] = useState(false);
+
+  // Check if wallet is already connected and update status
+  useEffect(() => {
+    if (isConnected && address && currentStatus.status === "not-connected") {
+      setCurrentStatus({ status: "connected" });
+    }
+  }, [isConnected, address, currentStatus.status, setCurrentStatus]);
 
   // Validate game ID
   const validateGameId = useCallback((id: string) => {
@@ -83,7 +90,11 @@ export function StarterDialog({
   const handleConnectWallet = async () => {
     setIsConnecting(true);
     try {
-      await connectWallet();
+      const result = await connectWallet();
+      if (result) {
+        // Update the status atom to "connected" when wallet connection is successful
+        setCurrentStatus({ status: "connected" });
+      }
     } catch (error) {
       console.error("Failed to connect wallet:", error);
     } finally {
