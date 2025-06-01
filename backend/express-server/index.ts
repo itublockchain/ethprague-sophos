@@ -12,13 +12,12 @@ const PORT = process.env.EXPRESS_PORT || 5000;
 // Express middleware'leri
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-let gameID = "";
-// Start Redis and add game data using gameID to Redis.
-
+ 
 // GET: /api/game/id
 app.get("/api/game/id", async (req: Request, res: Response): Promise<any> => {
-  if (!gameID) {
+  const gameID = await redisConnection.getGameID();
+
+  if(!gameID) {
     res.status(400).json({ error: "Game ID is not set" });
     return;
   }
